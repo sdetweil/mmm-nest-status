@@ -2,7 +2,7 @@ var NodeHelper = require('node_helper');
 var request = require('request');
 
 module.exports = NodeHelper.create({
-
+    api_server: "https://developer-api.nest.com",
     start: function() {
         console.log('Starting node_helper for module [' + this.name + ']');
     },
@@ -11,14 +11,21 @@ module.exports = NodeHelper.create({
 
         if (notification === 'MMM_NEST_STATUS_GET') {
 
+						var self = this;
             var token = payload.token;
-            var url = 'https://developer-api.nest.com/?auth=' + token;
-            var self = this;
-
+            var url = self.api_server+'/?auth=' + token;
+            
             request(url, {method: 'GET'}, function(err, res, body) {
 
                 if (res.statusCode === 429) {
                     self.sendSocketNotification('MMM_NEST_STATUS_DATA_BLOCKED', err);
+								}
+								// redirect?
+							  else if (res.statusCode === 307) {
+									  // set the new location
+									 self.api_server= res.Location;
+									 // and resend the request
+									 self.socketNotificationReceived(notification,payload);
                 } else if ((err) || (res.statusCode !== 200)) {
                     self.sendSocketNotification('MMM_NEST_STATUS_DATA_ERROR', err);
                 } else {
