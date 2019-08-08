@@ -16,26 +16,32 @@ module.exports = NodeHelper.create({
             var url = self.api_server+'/?auth=' + token;
             
             request(url, {method: 'GET'}, function(err, res, body) {
-
-                if (res.statusCode === 429) {
-                    self.sendSocketNotification('MMM_NEST_STATUS_DATA_BLOCKED', err);
+								// did we have an error?
+								if(err !== null){
+									// send that up to module
+									self.sendSocketNotification('MMM_NEST_STATUS_DATA_ERROR', err);
 								}
-								// redirect?
-							  else if (res.statusCode === 307) {
-									  // set the new location
-									 self.api_server= res.Location;
-									 // and resend the request
-									 self.socketNotificationReceived(notification,payload);
-                } else if ((err) || (res.statusCode !== 200)) {
-                    self.sendSocketNotification('MMM_NEST_STATUS_DATA_ERROR', err);
-                } else {
-                    if (body === {}) {
-                        self.sendSocketNotification('MMM_NEST_STATUS_DATA_ERROR', 'Token works, but no data was received.<br>Make sure you are using the master account for your Nest.');
-                    } else {
-                        var data = JSON.parse(body);
-                        self.sendSocketNotification('MMM_NEST_STATUS_DATA', data);
-                    }
-                }
+								else {
+									if (res.statusCode === 429) {
+											self.sendSocketNotification('MMM_NEST_STATUS_DATA_BLOCKED', err);
+									}
+									// redirect?
+									else if (res.statusCode === 307) {
+											// set the new location
+										 self.api_server= res.Location;
+										 // and resend the request
+										 self.socketNotificationReceived(notification,payload);
+									} else if (res.statusCode !== 200) {										 
+											self.sendSocketNotification('MMM_NEST_STATUS_DATA_ERROR', res.statusCode);
+									} else {
+											if (body === {}) {
+													self.sendSocketNotification('MMM_NEST_STATUS_DATA_ERROR', 'Token works, but no data was received.<br>Make sure you are using the master account for your Nest.');
+											} else {
+													var data = JSON.parse(body);
+													self.sendSocketNotification('MMM_NEST_STATUS_DATA', data);
+											}
+									}
+								}
 
             });
 
