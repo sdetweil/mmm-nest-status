@@ -595,7 +595,7 @@ Module.register('mmm-nest-status', {
             self.processNestData(payload);
             self.scheduleUpdate(self.config.updateInterval);
         } else if (notification === 'MMM_NEST_STATUS_DATA_ERROR') {
-            self.errMsg = 'Nest API Error: ' + payload;
+            self.errMsg = 'Nest API Error: ' + JSON.stringify(payload);
             self.updateDom(self.config.animationSpeed);
         } else if (notification === 'MMM_NEST_STATUS_DATA_BLOCKED') {
             // this is a specific error that occurs when the Nest API rate limit has been exceeded.
